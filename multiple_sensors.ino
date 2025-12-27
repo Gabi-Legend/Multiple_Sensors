@@ -1,5 +1,6 @@
 int button = 6;
 int touch = 7;
+int laser=8;
 
 int cnt = 0;
 const int totalSensors = 3;
@@ -10,6 +11,7 @@ bool lightProcessed= false;
 void setup() {
   pinMode(button, INPUT_PULLUP);
   pinMode(touch, INPUT);
+  pinMode(laser, OUTPUT);
   Serial.begin(9600);
 }
 
@@ -35,6 +37,11 @@ void loop() {
 
   if(cnt == totalSensors){
     Serial.println("Gata");
-    while(true); 
+    while(true){
+      digitalWrite(laser, HIGH);
+      delay(100);
+      digitalWrite(laser, LOW);
+      delay(100);
+    }
   }
 }
