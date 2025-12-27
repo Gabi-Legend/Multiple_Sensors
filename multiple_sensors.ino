@@ -4,6 +4,7 @@ int laser = 8;
 int redLED = 9;
 int greenLED = 10;
 int blueLED = 11;
+int buzzer = 12;
 
 int cnt = 0;
 const int totalSensors = 3;
@@ -19,6 +20,7 @@ void setup() {
   pinMode(redLED, OUTPUT);
   pinMode(greenLED, OUTPUT);
   pinMode(blueLED, OUTPUT);
+  pinMode(buzzer, OUTPUT);
   Serial.begin(9600);
 }
 
@@ -43,6 +45,7 @@ void loop() {
   }
 
   if(cnt == totalSensors){
+    digitalWrite(buzzer, HIGH);
     Serial.println("Gata");
     while(true){
       for(int i = 20; i <= 240; i+=40){
