@@ -25,6 +25,7 @@ int lastCLKState = LOW;
 bool timerRunning = false;
 unsigned long startTime = 0;
 const unsigned long timerDuration = 60000; // 60 secunde
+int lastSecondPrinted = -1;
 
 void setup() {
   pinMode(button, INPUT_PULLUP);
@@ -51,6 +52,13 @@ void resetLabirint() {
   lightProcessed = false;
   swProcessed = false;
   timerRunning = false;
+  lastSecondPrinted = -1;
+  digitalWrite(laser, LOW);
+  analogWrite(redLED, 0);
+  analogWrite(greenLED, 0);
+  analogWrite(blueLED, 0);
+  digitalWrite(buzzer, LOW);
+  
   Serial.println("Labirint resetat!");
 }
 
@@ -67,17 +75,20 @@ void loop() {
   // Timer logic
   if(timerRunning) {
     unsigned long elapsed = millis() - startTime;
-
     if(elapsed >= timerDuration) {
       Serial.println("Timpul a expirat!");
+      digitalWrite(buzzer, HIGH);
+      delay(1000);
+      digitalWrite(buzzer, LOW);
       resetLabirint();
-    } else if (elapsed >= 55000) { // ultimele 5 secunde
+    } else if (elapsed >= 55000) { 
       int secLeft = 60 - (elapsed / 1000);
-      Serial.println(secLeft);
-      delay(900);
+      if(secLeft != lastSecondPrinted) {
+        Serial.println(secLeft);
+        lastSecondPrinted = secLeft;
+      }
     }
   }
-
   // Button
   if(!digitalRead(button) && !buttonProcessed){ 
     cnt++;
@@ -85,7 +96,6 @@ void loop() {
     Serial.println("Buton apasat");
     delay(200); 
   }
-
   // Touch sensor
   if(digitalRead(touch) && !touchProcessed){ 
     cnt++;
@@ -124,6 +134,7 @@ void loop() {
       Serial.println(cntRotary);
       if(cntRotary == 3){
         cnt++;
+        cntRotary = 0; 
       }
     }
   }
@@ -131,9 +142,20 @@ void loop() {
 
   // Labirint complet
   if(cnt == totalSensors){
-    digitalWrite(buzzer, HIGH);
-    Serial.println("Gata");
+    timerRunning = false; 
+    Serial.println("FELICITARI! AI CASTIGAT!");
+    
+    for(int repeat = 0; repeat < 3; repeat++) {
+      digitalWrite(buzzer, HIGH);
+      delay(200);
+      digitalWrite(buzzer, LOW);
+      delay(100);
+    }
+    
     while(true){
+      // Roșu
+      analogWrite(greenLED, 0);
+      analogWrite(blueLED, 0);
       for(int i = 20; i <= 240; i+=40){
         analogWrite(redLED, i);
         digitalWrite(laser, HIGH);
@@ -141,13 +163,17 @@ void loop() {
         digitalWrite(laser, LOW);
         delay(50);
       }
-      for(int i = 255; i >= 5; i-=40){
+      for(int i = 240; i >= 20; i-=40){
         analogWrite(redLED, i);
         digitalWrite(laser, HIGH);
         delay(50);
         digitalWrite(laser, LOW);
         delay(50);
       }
+      
+      // Verde
+      analogWrite(redLED, 0);
+      analogWrite(blueLED, 0);
       for(int i = 20; i <= 240; i+=40){
         analogWrite(greenLED, i);
         digitalWrite(laser, HIGH);
@@ -155,13 +181,17 @@ void loop() {
         digitalWrite(laser, LOW);
         delay(50);
       }
-      for(int i = 255; i >= 5; i-=40){
+      for(int i = 240; i >= 20; i-=40){
         analogWrite(greenLED, i);
         digitalWrite(laser, HIGH);
         delay(50);
         digitalWrite(laser, LOW);
         delay(50);
       }
+      
+      // Albastru
+      analogWrite(redLED, 0);
+      analogWrite(greenLED, 0);
       for(int i = 20; i <= 240; i+=40){
         analogWrite(blueLED, i);
         digitalWrite(laser, HIGH);
@@ -169,7 +199,7 @@ void loop() {
         digitalWrite(laser, LOW);
         delay(50);
       }
-      for(int i = 255; i >= 5; i-=40){
+      for(int i = 240; i >= 20; i-=40){
         analogWrite(blueLED, i);
         digitalWrite(laser, HIGH);
         delay(50);
