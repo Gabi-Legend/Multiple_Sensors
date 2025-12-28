@@ -6,15 +6,20 @@ int greenLED = 10;
 int blueLED = 11;
 int buzzer = 12;
 int swRotary = 5;
+int clkRotary = 3;
+int dtRotary = 4;
 
 int cnt = 0;
-int cntSW=0;
-const int totalSensors = 4;
+int cntSW = 0;
+int cntRotary = 0;
+const int totalSensors = 5; 
 
 bool buttonProcessed = false;
 bool touchProcessed = false;
 bool lightProcessed = false;
 bool swProcessed = false;
+bool lastSWState = HIGH;
+int lastCLKState = LOW;
 
 void setup() {
   pinMode(button, INPUT_PULLUP);
@@ -24,15 +29,18 @@ void setup() {
   pinMode(greenLED, OUTPUT);
   pinMode(blueLED, OUTPUT);
   pinMode(buzzer, OUTPUT);
-  pinMode(swRotary, INPUT);
+  pinMode(swRotary, INPUT_PULLUP);
+  pinMode(clkRotary, INPUT);
+  pinMode(dtRotary, INPUT);
   Serial.begin(9600);
+  lastCLKState = digitalRead(clkRotary);
 }
 
 void loop() {
   if(!digitalRead(button) && !buttonProcessed){ 
     cnt++;
     buttonProcessed = true;
-    Serial.println("Buton apast");
+    Serial.println("Buton apasat");
     delay(200); 
   }
   if(digitalRead(touch) && !touchProcessed){ 
@@ -48,19 +56,29 @@ void loop() {
     delay(200);
   }
 
-  if(digitalRead(swRotary)==0 && !swProcessed){
-    if(cntSW<3)
-      {
-        cntSW++;
-        Serial.println("SW Apasat");
-        delay(200);
-      }
-    if(cntSW==3)
-      {
-        cnt++;
-        swProcessed = true;
-      }
+  bool currentSWState = digitalRead(swRotary);
+  if(lastSWState == HIGH && currentSWState == LOW && !swProcessed){
+    cntSW++;
+    Serial.println("SW Apasat");
+    if(cntSW == 3){
+      cnt++;
+      swProcessed = true;
+    }
+    delay(50);
   }
+  lastSWState = currentSWState;
+
+  int currentCLKState = digitalRead(clkRotary);
+  if(currentCLKState != lastCLKState){ 
+    if(digitalRead(dtRotary) != currentCLKState){ 
+      cntRotary++;
+      Serial.print("Ai rotit in dreapta");
+      if(cntRotary == 3){
+        cnt++;
+      }
+    }
+  }
+  lastCLKState = currentCLKState;
 
   if(cnt == totalSensors){
     digitalWrite(buzzer, HIGH);
