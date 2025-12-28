@@ -5,6 +5,7 @@ int redLED = 9;
 int greenLED = 10;
 int blueLED = 11;
 int buzzer = 12;
+int passiveBuzzer = A4; 
 int swRotary = 5;
 int clkRotary = 3;
 int dtRotary = 4;
@@ -35,6 +36,7 @@ void setup() {
   pinMode(greenLED, OUTPUT);
   pinMode(blueLED, OUTPUT);
   pinMode(buzzer, OUTPUT);
+  pinMode(passiveBuzzer, OUTPUT);
   pinMode(swRotary, INPUT_PULLUP);
   pinMode(clkRotary, INPUT);
   pinMode(dtRotary, INPUT);
@@ -53,13 +55,21 @@ void resetLabirint() {
   swProcessed = false;
   timerRunning = false;
   lastSecondPrinted = -1;
+  
   digitalWrite(laser, LOW);
   analogWrite(redLED, 0);
   analogWrite(greenLED, 0);
   analogWrite(blueLED, 0);
   digitalWrite(buzzer, LOW);
+  noTone(passiveBuzzer);
   
   Serial.println("Labirint resetat!");
+}
+
+void playProgressSound() {
+  int frequencies[] = {262, 330, 392, 494, 587}; 
+  int freq = frequencies[cnt - 1];
+  tone(passiveBuzzer, freq, 300);
 }
 
 void loop() {
@@ -75,13 +85,14 @@ void loop() {
   // Timer logic
   if(timerRunning) {
     unsigned long elapsed = millis() - startTime;
+
     if(elapsed >= timerDuration) {
       Serial.println("Timpul a expirat!");
       digitalWrite(buzzer, HIGH);
       delay(1000);
       digitalWrite(buzzer, LOW);
       resetLabirint();
-    } else if (elapsed >= 55000) { 
+    } else if (elapsed >= 55000) { // ultimele 5 secunde
       int secLeft = 60 - (elapsed / 1000);
       if(secLeft != lastSecondPrinted) {
         Serial.println(secLeft);
@@ -89,18 +100,22 @@ void loop() {
       }
     }
   }
+
   // Button
   if(!digitalRead(button) && !buttonProcessed){ 
     cnt++;
     buttonProcessed = true;
     Serial.println("Buton apasat");
+    playProgressSound();
     delay(200); 
   }
+
   // Touch sensor
   if(digitalRead(touch) && !touchProcessed){ 
     cnt++;
     touchProcessed = true;
     Serial.println("Senzor atins");
+    playProgressSound();
     delay(200);
   }
 
@@ -109,6 +124,7 @@ void loop() {
     cnt++;
     lightProcessed = true;
     Serial.println("Lumina inchisa");
+    playProgressSound();
     delay(200);
   }
 
@@ -120,6 +136,7 @@ void loop() {
     if(cntSW == 3){
       cnt++;
       swProcessed = true;
+      playProgressSound();
     }
     delay(50);
   }
@@ -135,6 +152,7 @@ void loop() {
       if(cntRotary == 3){
         cnt++;
         cntRotary = 0; 
+        playProgressSound();
       }
     }
   }
@@ -143,17 +161,13 @@ void loop() {
   // Labirint complet
   if(cnt == totalSensors){
     timerRunning = false; 
+    noTone(passiveBuzzer); 
     Serial.println("FELICITARI! AI CASTIGAT!");
     
     for(int repeat = 0; repeat < 3; repeat++) {
       digitalWrite(buzzer, HIGH);
       delay(200);
-      digitalWrite(buzzer, LOW);
-      delay(100);
-    }
-    
-    while(true){
-      // Roșu
+      digitalWrite(buzzer,LOW);
       analogWrite(greenLED, 0);
       analogWrite(blueLED, 0);
       for(int i = 20; i <= 240; i+=40){
