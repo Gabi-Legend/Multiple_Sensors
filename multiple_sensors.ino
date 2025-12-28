@@ -5,13 +5,16 @@ int redLED = 9;
 int greenLED = 10;
 int blueLED = 11;
 int buzzer = 12;
+int swRotary = 5;
 
 int cnt = 0;
-const int totalSensors = 3;
+int cntSW=0;
+const int totalSensors = 4;
 
 bool buttonProcessed = false;
 bool touchProcessed = false;
 bool lightProcessed = false;
+bool swProcessed = false;
 
 void setup() {
   pinMode(button, INPUT_PULLUP);
@@ -21,6 +24,7 @@ void setup() {
   pinMode(greenLED, OUTPUT);
   pinMode(blueLED, OUTPUT);
   pinMode(buzzer, OUTPUT);
+  pinMode(swRotary, INPUT);
   Serial.begin(9600);
 }
 
@@ -42,6 +46,20 @@ void loop() {
     lightProcessed = true;
     Serial.println("Lumina inchisa");
     delay(200);
+  }
+
+  if(digitalRead(swRotary)==0 && !swProcessed){
+    if(cntSW<3)
+      {
+        cntSW++;
+        Serial.println("SW Apasat");
+        delay(200);
+      }
+    if(cntSW==3)
+      {
+        cnt++;
+        swProcessed = true;
+      }
   }
 
   if(cnt == totalSensors){
