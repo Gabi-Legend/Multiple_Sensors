@@ -8,11 +8,12 @@ int buzzer = 12;
 int swRotary = 5;
 int clkRotary = 3;
 int dtRotary = 4;
+int start_reset_button = 2;
 
 int cnt = 0;
 int cntSW = 0;
 int cntRotary = 0;
-const int totalSensors = 5; 
+const int totalSensors = 5;
 
 bool buttonProcessed = false;
 bool touchProcessed = false;
@@ -20,6 +21,10 @@ bool lightProcessed = false;
 bool swProcessed = false;
 bool lastSWState = HIGH;
 int lastCLKState = LOW;
+
+bool timerRunning = false;
+unsigned long startTime = 0;
+const unsigned long timerDuration = 60000; // 60 secunde
 
 void setup() {
   pinMode(button, INPUT_PULLUP);
@@ -32,23 +37,64 @@ void setup() {
   pinMode(swRotary, INPUT_PULLUP);
   pinMode(clkRotary, INPUT);
   pinMode(dtRotary, INPUT);
+  pinMode(start_reset_button, INPUT_PULLUP);
   Serial.begin(9600);
   lastCLKState = digitalRead(clkRotary);
 }
 
+void resetLabirint() {
+  cnt = 0;
+  cntSW = 0;
+  cntRotary = 0;
+  buttonProcessed = false;
+  touchProcessed = false;
+  lightProcessed = false;
+  swProcessed = false;
+  timerRunning = false;
+  Serial.println("Labirint resetat!");
+}
+
 void loop() {
+  // START / RESET button
+  if(!digitalRead(start_reset_button)) {
+    resetLabirint();
+    startTime = millis();
+    timerRunning = true;
+    Serial.println("JOC INCEPUT");
+    delay(200);  
+  }
+
+  // Timer logic
+  if(timerRunning) {
+    unsigned long elapsed = millis() - startTime;
+
+    if(elapsed >= timerDuration) {
+      Serial.println("Timpul a expirat!");
+      resetLabirint();
+    } else if (elapsed >= 55000) { // ultimele 5 secunde
+      int secLeft = 60 - (elapsed / 1000);
+      Serial.println(secLeft);
+      delay(900);
+    }
+  }
+
+  // Button
   if(!digitalRead(button) && !buttonProcessed){ 
     cnt++;
     buttonProcessed = true;
     Serial.println("Buton apasat");
     delay(200); 
   }
+
+  // Touch sensor
   if(digitalRead(touch) && !touchProcessed){ 
     cnt++;
     touchProcessed = true;
     Serial.println("Senzor atins");
     delay(200);
   }
+
+  // Light sensor
   if(analogRead(A5)<400 && !lightProcessed){
     cnt++;
     lightProcessed = true;
@@ -56,6 +102,7 @@ void loop() {
     delay(200);
   }
 
+  // Rotary encoder SW
   bool currentSWState = digitalRead(swRotary);
   if(lastSWState == HIGH && currentSWState == LOW && !swProcessed){
     cntSW++;
@@ -68,11 +115,13 @@ void loop() {
   }
   lastSWState = currentSWState;
 
+  // Rotary encoder rotation
   int currentCLKState = digitalRead(clkRotary);
   if(currentCLKState != lastCLKState){ 
     if(digitalRead(dtRotary) != currentCLKState){ 
       cntRotary++;
-      Serial.print("Ai rotit in dreapta");
+      Serial.print("Ai rotit in dreapta: ");
+      Serial.println(cntRotary);
       if(cntRotary == 3){
         cnt++;
       }
@@ -80,6 +129,7 @@ void loop() {
   }
   lastCLKState = currentCLKState;
 
+  // Labirint complet
   if(cnt == totalSensors){
     digitalWrite(buzzer, HIGH);
     Serial.println("Gata");
