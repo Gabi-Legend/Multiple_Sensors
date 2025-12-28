@@ -1,8 +1,8 @@
-Arduino Sensor Labyrinth
+🕹️ Arduino Sensor Labyrinth
 
 This project is an interactive Arduino-based labyrinth using multiple sensors. The goal is to trigger all sensors in sequence to complete the challenge.
 
-Features
+⚡ Features
 
 Push Button – The first step in the labyrinth.
 
@@ -16,7 +16,7 @@ RGB LED and Laser – Visual feedback when the labyrinth is completed.
 
 Buzzer – Audible signal when all steps are completed.
 
-How to Use
+📝 How to Use
 
 Press the button.
 
@@ -28,7 +28,7 @@ Rotate the rotary encoder to the right three times.
 
 Once all steps are completed, the RGB LED and laser light up, and the buzzer sounds.
 
-Requirements
+🛠️ Requirements
 
 Arduino Uno (or compatible)
 
@@ -48,7 +48,7 @@ Laser module
 
 Jumper wires and breadboard
 
-Notes
+💡 Notes
 
 The sequence of sensor activation must be followed.
 
